@@ -1,0 +1,267 @@
+PS D:\MongoLearn> mongo
+MongoDB shell version v5.0.9
+connecting to: mongodb://127.0.0.1:27017/?compressors=disabled&gssapiServiceName=mongodb
+Implicit session: session { "id" : UUID("48b2182c-7d82-4ead-a20c-a292b376f9c3") }
+MongoDB server version: 5.0.9
+================
+Warning: the "mongo" shell has been superseded by "mongosh",
+which delivers improved usability and compatibility.The "mongo" shell has been deprecated and will be removed in
+an upcoming release.
+For installation instructions, see
+https://docs.mongodb.com/mongodb-shell/install/
+================
+---
+The server generated these startup warnings when booting:
+        2022-12-19T10:45:48.157+05:30: Access control is not enabled for the database. Read and write access to data and configuration is unrestricted
+---
+---
+        Enable MongoDB's free cloud-based monitoring service, which will then receive and display
+        metrics about your deployment (disk utilization, CPU, operation statistics, etc).
+
+        The monitoring data will be available on a MongoDB website with a unique URL accessible to you
+        and anyone you share the URL with. MongoDB may use this information to make product
+        improvements and to suggest MongoDB products and deployment options to you.
+
+        To enable free monitoring, run the following command: db.enableFreeMonitoring()
+        To permanently disable this reminder, run the following command: db.disableFreeMonitoring()
+---
+> show databases;
+admin   0.000GB
+config  0.000GB
+local   0.000GB
+ods     0.000GB
+
+
+Create new Database – 
+> use intf; # Create / Switch to database. If DB does not exist, creates new.
+switched to db intf
+> show databases; # list the databases.
+admin   0.000GB
+config  0.000GB
+local   0.000GB
+ods     0.000GB
+> # until we create a new collection, our database will not be visible
+> db # shows current database 
+intf
+> db.dropDatabase() # to drop database
+{ "ok" : 1 }
+> db.createCollection('<collection-name>')
+> > db.createCollection('Person')
+> db.Person.insert({'name':'mukul bidnal', 'age':23})
+WriteResult({ "nInserted" : 1 })
+> db.Person.find()
+{ "_id" : ObjectId("63a0000317163960b1cd52cd"), "name" : "mukul bidnal", "age" : 23 }
+> db.createCollection('Orders')
+{ "ok" : 1 }
+> db.Orders.insert({'item':'Smoothy', 'qty':3}) 
+WriteResult({ "nInserted" : 1 })
+> db.Orders.insert({'item':'Pizza', 'qty':1})  
+WriteResult({ "nInserted" : 1 })
+> db.Orders.find()
+{ "_id" : ObjectId("63a0009117163960b1cd52ce"), "item" : "Smoothy", "qty" : 3 }
+{ "_id" : ObjectId("63a000a217163960b1cd52cf"), "item" : "Pizza", "qty" : 1 }
+> db.Person.drop() # Top Drop the collection
+true
+> db.Person.find()
+
+JSON vs BSON:
+JSON can store almost any data to establish communicaton between two apps. However it also has some
+limitations that prevent it from storing things like - 
+    - dates
+    - timestamp
+    - ObjectId
+    - Blob etc
+
+To overcome above limitation, we have BSON which is Binary Encoded JSON. It supports additional
+data types.
+
+In MongoDB, the documents are represented as JSON but they are binary encoded, aka BSON.
+
+If a collection does not exist and we insert a document in it, it will create it again.
+> db.Person.drop()
+true
+> db.Person.find()
+> db.Person.insert({'name':'nikhil', age:28})
+WriteResult({ "nInserted" : 1 })
+>
+db.Person.insertMany([{...},{...},..])
+
+We can even pass _id and change its value. But it is tricky and might break the uniqueness. Hence not recommended to 
+change the _id of any document.
+
+db.Orders.insertMany([
+    {"item" : "Coffee", "qty" : 2 },
+{ "item" : "Cream Bun", "qty" : 1 },
+]);
+
+------------------------------
+Update Queries
+- update - updates one document that matches - can pass 'multi' to update multiple docs (deprecated)
+- updateOne - updates the first matching doc 
+- updateMany - updates all matching doc
+
+db.Orders.update(
+
+    {
+        "item":"Coffee"
+    },
+    {
+        $set:{
+            "qty":3
+        }
+    }
+);
+WriteResult({ "nMatched" : 1, "nUpserted" : 0, "nModified" : 1 })
+> db.Orders.find()
+{ "_id" : ObjectId("63a0009117163960b1cd52ce"), "item" : "Smoothy", "qty" : 3 }
+{ "_id" : ObjectId("63a000a217163960b1cd52cf"), "item" : "Pizza", "qty" : 1 }
+{ "_id" : ObjectId("63a0091b17163960b1cd52d1"), "item" : "Coffee", "qty" : 3 }
+{ "_id" : ObjectId("63a0091b17163960b1cd52d2"), "item" : "Cream Bun", "qty" : 1 }
+>
+
+
+Read Data - 
+1 - find() - finds all docs 
+2 - findOne() - finds first matching 
+3 - find ({criteria}); - finds based on some criteria 
+4 - findOneAndReplace({condition}, {replacement})
+5 - findOneAndDelete({condition})
+
+> db.Orders.find({qty:1})
+{ "_id" : ObjectId("63a000a217163960b1cd52cf"), "item" : "Pizza", "qty" : 1 }
+{ "_id" : ObjectId("63a0091b17163960b1cd52d2"), "item" : "Cream Bun", "qty" : 1 }
+> db.Orders.findOne({qty:3})
+{
+        "_id" : ObjectId("63a0009117163960b1cd52ce"),
+        "item" : "Smoothy",
+        "qty" : 3
+}
+
+
+Delete the documents - 
+deleteMany({condition}) - if passed {} - it will delete all the records
+deleteOne({condition}) - will delete the first match only
+
+
+Fetch data using Queries:-
+Using find method of MongoDB using operators like eq, lt, gt, lte, gte, and, or etc logical 
+and relational etc operators.
+
+
+- find() will return all the docs
+- 
+
+{ "_id" : 0, "name" : "aimee Zank", "scores" : [ { "score" : 1.463179736705023, "type" : "exam" }, { "score" : 11.78273309957772, "type" : 
+"quiz" }, { "score" : 35.8740349954354, "type" : "homework" } ] }
+
+db.products.find({
+    warranty_years:1
+});
+
+db.products.find({
+    warranty_years : {
+        $gte:1
+    },
+    rating : {
+        $gte : 4
+    }
+});
+
+db.products.find({
+    warranty_years : {
+        $lte:1
+    },
+    rating : {
+        $lte : 4
+    }
+});
+
+By default the comma separated JSON will be treated as AND operator. Better way is to use it with AND/OR specifically
+db.products.find({
+    $and:[
+        {
+            warranty_years : {
+                $lte:1
+            }
+        },
+        {
+            rating : {
+                $gte: 4
+            }
+        }
+    ]
+});
+
+Above query fetches all the products with warranty_years <= 1 and rating >= 4
+
+To fetch all the products with warranty_years <=1 OR rating >=4, we can simply use $or 
+
+db.products.find({
+    $or:[
+        {
+            warranty_years : {
+                $lte:1
+            }
+        },
+        {
+            rating : {
+                $gte: 4
+            }
+        }
+    ]
+});
+
+We can use Projection to fetch specific fields - second argument
+db.products.find({
+    warranty_years : {
+        $gte:1
+    },
+    rating : {
+        $lte : 4
+    }
+},
+{
+    name:1,
+    brand:1,
+    _id:0     ------ _id will come anyways, whether specified or not. So we can supress it using 0
+});
+
+Other example - By default all other fields have value 1.
+db.products.find({
+    warranty_years : {
+        $gte:1
+    },
+    rating : {
+        $lte : 4
+    }
+},
+{
+    name:0,
+    brand:0,
+    _id:0     
+});
+
+Above will return all fields except name, brand, _id. If we include even a single field with value 1, it will 
+by default put 0 to all other fields. 
+
+------------
+Aggregation:
+The key element here is pipeline.
+It helps us performing operations like min/max/count/sort/limit etc, basically the function calls in terms of SQL
+
+We use the aggregate() method to use Aggregation.
+#Will update 
+db.products.find().sort({name:-1}) 
+
+
+
+---
+Indexes
+
+by default the collections have the Indexes created on "_id".
+
+We can create other indexes to retrieve the data in a faster way.
+
+
+
+
